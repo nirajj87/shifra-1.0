@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "exe": "node desktop/compile-launcher.mjs"
   },
   "dependencies": {
     "@google/genai": "^0.7.0",

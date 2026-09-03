@@ -1,4 +1,7 @@
 import commonQa from "./data/common-qa.json";
+import { isGreeting } from "./language";
+import { fold } from "./tools/fold";
+import { looksLikeKnowledge } from "./tools/web";
 import type { FillMissingResult, MissingQuestion, QaItem } from "./types";
 
 const STORAGE_KEY = "shifra_learned_qa";
@@ -192,13 +195,15 @@ function keyHits(query: string, key: string) {
 }
 
 export function findCommonAnswer(question: string, lang: string) {
+  if (looksLikeKnowledge(question)) return null;
   const query = normalize(question);
+  const folded = normalize(fold(question));
   if (!query) return null;
   let best: QaItem | null = null;
   let bestLen = 0;
   for (const item of bank) {
     for (const key of item.keys) {
-      const len = keyHits(query, key);
+      const len = Math.max(keyHits(query, key), keyHits(folded, key));
       if (len > bestLen) {
         best = item;
         bestLen = len;
@@ -206,6 +211,11 @@ export function findCommonAnswer(question: string, lang: string) {
     }
   }
   if (!best || bestLen < 3) return null;
+  if (best.id === "greeting" && !isGreeting(question)) return null;
+  if (best.id === "creator" && !/you|tum|shifra|banaya|created|made you/i.test(`${query} ${folded}`)) {
+    return null;
+  }
+  if (query.split(" ").length > 8 && bestLen / query.length < 0.28) return null;
   const raw = lang === "hi" ? best.hi : best.en;
   return fillDynamic(raw, lang);
 }

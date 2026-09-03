@@ -5,7 +5,9 @@
     "dev": "npm run dev --prefix shipra",
     "build": "npm run build --prefix shipra",
     "preview": "npm run preview --prefix shipra",
-    "lint": "npm run lint --prefix shipra"
+    "lint": "npm run lint --prefix shipra",
+    "exe": "npm run exe --prefix shipra",
+    "desktop": "npm run exe --prefix shipra"
   },
   "dependencies": {
     "dotenv": "^16.4.7"

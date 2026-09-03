@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useRef, useState } from "react";
 import { think } from "../brain";
 import { config } from "../config";
 import { detectLanguage, inLang, pickVoice, sttLangFor, ttsLangFor } from "../language";
+import { repairSpeech } from "../tools/speech";
 
 export const datacontext = createContext();
 
@@ -57,10 +58,13 @@ function UserContext({ children }) {
   }
 
   async function generateResponse(text) {
-    const lang = detectLanguage(text);
+    const cleaned = repairSpeech(text);
+    const lang = detectLanguage(cleaned);
     lastLangRef.current = lang;
-    const responseText = await think(text, lang);
-    setMessages((prev) => [...prev, { role: "assistant", text: responseText }]);
+    const result = await think(cleaned, lang);
+    const responseText = result?.text || "";
+    const source = result?.source || "";
+    setMessages((prev) => [...prev, { role: "assistant", text: responseText, source }]);
     speak(responseText, lang);
   }
 
@@ -78,7 +82,7 @@ function UserContext({ children }) {
       "Hi, I'm Shifra. Hold the mic or type a command.",
       "Namaste, mai Shifra hoon. Mic dabaye rakho ya command type karo."
     );
-    setMessages([{ role: "assistant", text: hello }]);
+    setMessages([{ role: "assistant", text: hello, source: "Shifra" }]);
     const timer = window.setTimeout(() => speak(hello, lang), 350);
     return () => window.clearTimeout(timer);
   }, []);
@@ -198,7 +202,10 @@ function UserContext({ children }) {
 
   async function copyChat() {
     const text = messages
-      .map((item) => `${item.role === "user" ? "You" : "Shifra"}: ${item.text}`)
+      .map((item) => {
+        const line = `${item.role === "user" ? "You" : "Shifra"}: ${item.text}`;
+        return item.source ? `${line}\n(${item.source})` : line;
+      })
       .join("\n\n");
     await navigator.clipboard.writeText(text || "");
     setCopied(true);

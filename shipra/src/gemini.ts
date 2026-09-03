@@ -9,10 +9,12 @@ const MODELS = [
 
 function instruction(lang: string) {
   const n = config.answerSentences;
+  const rules =
+    "Never invent distances, names, dates, or news. If unsure, say you do not know. No markdown.";
   if (lang === "hi") {
-    return `You are Shifra, a friendly voice assistant created by Niraj Kumar Singh. Reply in Hindi only. Use at most ${n} short spoken sentences. No markdown.`;
+    return `You are Shifra, a friendly voice assistant created by Niraj Kumar Singh. Reply in simple Hindi only. Use at most ${n} short spoken sentences. ${rules}`;
   }
-  return `You are Shifra, a friendly voice assistant created by Niraj Kumar Singh. Reply in English only. Use at most ${n} short spoken sentences. No markdown.`;
+  return `You are Shifra, a friendly voice assistant created by Niraj Kumar Singh. Reply in English only. Use at most ${n} short spoken sentences. ${rules}`;
 }
 
 type GeminiPart = { text?: string };
@@ -33,7 +35,7 @@ async function ask(modelName: string, prompt: string, lang: string) {
       system_instruction: { parts: [{ text: instruction(lang) }] },
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.6,
+        temperature: 0.2,
         maxOutputTokens: config.maxOutputTokens,
       },
     }),

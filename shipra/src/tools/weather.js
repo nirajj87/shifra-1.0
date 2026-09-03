@@ -1,4 +1,9 @@
-const WEATHER_STOP = /\b(aaj|ka|ki|ke|the|what|is|today|temperature|weather|mausam|kaisa|kya|hai|kitna|degree|celsius|temp|in|of|me|mein|का|के|की|क्या|है|मौसम|कैसा|टेंपरेचर|तापमान|आज)\b/gi;
+import { geocode } from "./places";
+import { fold } from "./fold";
+import { repairSpeech } from "./speech";
+
+const WEATHER_STOP =
+  /\b(aaj|ka|ki|ke|the|what|is|today|temperature|weather|mausam|kaisa|kya|hai|kitna|degree|celsius|temp|in|of|me|mein|batao)\b/gi;
 
 export function isWeatherSmallTalk(text) {
   const t = `${text}`.toLowerCase();
@@ -16,14 +21,14 @@ export function isWeatherQuestion(text) {
   if (isWeatherSmallTalk(text) && !/temperature|टेंपरेचर|तापमान|kitna degree/i.test(text)) {
     return false;
   }
-  const t = text.toLowerCase();
+  const t = fold(repairSpeech(text));
   return (
     t.includes("temperature") ||
     t.includes("weather") ||
     t.includes("mausam kaisa") ||
     t.includes("mausam kya") ||
     t.includes("kitna degree") ||
-    t.includes("temp") ||
+    /\btemp\b/.test(t) ||
     text.includes("मौसम कैसा") ||
     text.includes("मौसम क्या") ||
     text.includes("तापमान") ||
@@ -33,25 +38,11 @@ export function isWeatherQuestion(text) {
 }
 
 function extractPlace(text) {
-  return String(text || "")
+  return fold(repairSpeech(text))
     .replace(WEATHER_STOP, " ")
     .replace(/[?.!,]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-async function geocode(name) {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const data = await res.json();
-  const hit = data?.results?.[0];
-  if (!hit) return null;
-  return {
-    label: hit.name,
-    lat: hit.latitude,
-    lon: hit.longitude,
-  };
 }
 
 export async function getWeatherReply(text, lang) {

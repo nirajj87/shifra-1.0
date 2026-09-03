@@ -3,6 +3,7 @@ export type AppStatus = "idle" | "listening" | "waiting" | "speaking";
 export type ChatMessage = {
   role: "user" | "assistant";
   text: string;
+  source?: string;
 };
 
 export type ShifraContext = {

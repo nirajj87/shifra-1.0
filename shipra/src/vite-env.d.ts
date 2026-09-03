@@ -8,6 +8,9 @@ interface ImportMetaEnv {
   readonly VITE_WELCOME?: string;
   readonly VITE_LEARN_QA?: string;
   readonly VITE_GEMINI_ENABLED?: string;
+  readonly VITE_WEB_FALLBACK?: string;
+  readonly VITE_GOOGLE_CSE_KEY?: string;
+  readonly VITE_GOOGLE_CSE_CX?: string;
 }
 
 interface ImportMeta {

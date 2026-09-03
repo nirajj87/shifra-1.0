@@ -17,4 +17,5 @@ export const config = {
   welcome: envFlag("VITE_WELCOME", true),
   learnQA: envFlag("VITE_LEARN_QA", true),
   geminiEnabled: envFlag("VITE_GEMINI_ENABLED", true),
+  webFallback: envFlag("VITE_WEB_FALLBACK", true),
 };

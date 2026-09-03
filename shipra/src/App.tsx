@@ -146,6 +146,9 @@ function App() {
               {message.role === "user" ? "You" : "Shifra"}
             </span>
             <p>{message.text}</p>
+            {message.role === "assistant" && message.source ? (
+              <small className="source">{message.source}</small>
+            ) : null}
           </div>
         ))}
         {status === "listening" && (
@@ -172,7 +175,7 @@ function App() {
             type="text"
             value={typed}
             disabled={busy}
-            placeholder="Type a command… open notepad, play music"
+            placeholder="Type… translate hello to hindi, Delhi se Mumbai kitna door"
             onChange={(event) => setTyped(event.target.value)}
           />
           <button type="submit" disabled={busy || !typed.trim()}>

@@ -1,7 +1,7 @@
 [
   {
     "id": "love",
-    "keys": ["i love you", "love you", "love u", "i like you", "आई लव यू", "आई लव", "pyar karogi", "प्यार करोगी", "प्यार", "मुझे तुमसे"],
+    "keys": ["i love you", "love you", "love u", "i like you", "आई लव यू", "आई लव", "pyar karogi", "प्यार करोगी", "प्यार", "मुझे तुमसे", "tumse pyar hai", "tumse pyar", "main tumse pyar", "pyar hai"],
     "en": "That's sweet. I like talking with you too!",
     "hi": "Aww, yeh sunke dil khush ho gaya!"
   },
@@ -38,8 +38,8 @@
   {
     "id": "help",
     "keys": ["what can you do", "help me", "kya poochu", "kya puchu", "kya puchun", "क्या पूछूं", "क्या पूछूँ", "क्या कर सकती", "features"],
-    "en": "Ask my name, weather, who made me, or type: open notepad, start docker, play music, open email, open D drive, open project shifra.",
-    "hi": "Poochho: mera naam, mausam, kisne banaya. Type bhi kar sakte ho: open notepad, start docker, play music, open email, open project shifra."
+    "en": "Ask weather, translate hello to Hindi, Delhi se Mumbai kitna door, 100 dollar in rupees, or open notepad.",
+    "hi": "Poochho: mausam, translate hello to hindi, Delhi se Mumbai kitna door, 100 dollar in rupees, ya notepad kholo."
   },
   {
     "id": "sad",
@@ -73,7 +73,7 @@
   },
   {
     "id": "scold",
-    "keys": ["bakwas", "faltu", "shut up", "chup", "बकवास", "फालतू"],
+    "keys": ["bakwas", "faltu", "shut up", "chup", "bewakoof", "बेवकूफ", "बकवास", "फालतू"],
     "en": "Sorry. I'll keep answers short and correct.",
     "hi": "Maaf karna. Ab seedha aur sahi jawab dungi."
   },
@@ -85,7 +85,7 @@
   },
   {
     "id": "showList",
-    "keys": ["common list", "kya pooch sakte", "list dikhao", "apna list", "कमल लिस्ट", "कॉमन लिस्ट", "लिस्ट दिखाओ", "क्या पूछ सकते"],
+    "keys": ["common list", "kya pooch sakte", "list dikhao", "apna list", "question list", "all question", "कमल लिस्ट", "कॉमन लिस्ट", "लिस्ट दिखाओ", "क्या पूछ सकते"],
     "en": "__LIST__",
     "hi": "__LIST__"
   },
@@ -94,6 +94,12 @@
     "keys": ["how are you", "kaise ho", "kya haal", "namaste", "namaskar", "hello", "कैसे हो", "क्या हाल", "नमस्ते", "नमस्कार", "हाउ आर यू"],
     "en": "I'm doing great! What about you?",
     "hi": "Mai ekdum first-class hoon! Tum batao kya haal hai?"
+  },
+  {
+    "id": "doingWell",
+    "keys": ["i am great", "im great", "i am good", "i am fine", "mai theek"],
+    "en": "Glad to hear that. What should we do next?",
+    "hi": "Accha laga sunke. Ab kya karun?"
   },
   {
     "id": "thanks",
@@ -121,13 +127,13 @@
   },
   {
     "id": "language",
-    "keys": ["speak hindi", "speak english", "konsi language", "कौनसी भाषा"],
+    "keys": ["speak hindi", "speak in hindi", "speak english", "konsi language", "कौनसी भाषा", "what do you know", "how to speak", "do you speak"],
     "en": "I can talk in Hindi and English. I try to match you.",
     "hi": "Mai Hindi aur English dono bol sakti hoon."
   },
   {
     "id": "joke",
-    "keys": ["tell me a joke", "joke sunao", "joke", "जोक्स", "चुटकुला"],
+    "keys": ["tell me a joke", "joke sunao", "share a joke", "joke", "जोक्स", "चुटकुला"],
     "en": "Why did the computer go to the doctor? Because it caught a virus!",
     "hi": "Computer doctor ke paas kyun gaya? Kyunki usko virus ho gaya tha!"
   },
