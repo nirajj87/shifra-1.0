@@ -1,190 +1,236 @@
-import React, { createContext, useState } from "react";
-import run from "../gemini"; // Gemini AI API
+import React, { createContext, useEffect, useRef, useState } from "react";
+import { think } from "../brain";
+import { config } from "../config";
+import { detectLanguage, inLang, pickVoice, sttLangFor, ttsLangFor } from "../language";
 
 export const datacontext = createContext();
 
 function UserContext({ children }) {
-  let [speaking, setSpeaking] = useState(false);
-  let [prompt, setPrompt] = useState("Listening...");
-  let [response, setResponse] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [supported, setSupported] = useState(true);
+  const [copied, setCopied] = useState(false);
 
-  function speak(text) {
-    if (!text) return;
-    window.speechSynthesis.cancel();
-    let utterance = new SpeechSynthesisUtterance(text);
-    utterance.volume = 1;
-    utterance.rate = 1.2;
-    utterance.pitch = 1;
-    utterance.lang = "hi-GB";
+  const holdingRef = useRef(false);
+  const finalsRef = useRef("");
+  const interimRef = useRef("");
+  const recognitionRef = useRef(null);
+  const statusRef = useRef("idle");
+  const generateResponseRef = useRef(null);
+  const lastLangRef = useRef("en");
+  const welcomedRef = useRef(false);
 
-    utterance.onend = () => setSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  }
+  statusRef.current = status;
 
-  function detectMood(text) {
-    let lowerText = text.toLowerCase();
-    if (
-      lowerText.includes("happy") ||
-      lowerText.includes("great") ||
-      lowerText.includes("awesome")
-    ) {
-      return "happy";
-    } else if (
-      lowerText.includes("sad") ||
-      lowerText.includes("depressed") ||
-      lowerText.includes("not good")
-    ) {
-      return "sad";
-    } else if (
-      lowerText.includes("angry") ||
-      lowerText.includes("mad") ||
-      lowerText.includes("frustrated")
-    ) {
-      return "angry";
-    } else if (
-      lowerText.includes("excited") ||
-      lowerText.includes("thrilled")
-    ) {
-      return "excited";
+  function speak(text, lang = "en") {
+    if (!text) {
+      setStatus("idle");
+      return;
     }
-    return "neutral";
-  }
-  function cleanResponse(response) {
-    return response
-      .replace(/\*+/g, "")  // Remove * and ** (Bold Markdown)
-      .replace(/_+/g, "")   // Remove _ (Italic Markdown)
-      .replace(/<\/?b>/g, "") // Remove <b> and </b> (Bold HTML)
-      .replace(/<\/?i>/g, ""); // Remove <i> and </i> (Italic HTML)
+
+    const play = () => {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.volume = 1;
+      utterance.rate = lang === "hi" ? 1.05 : 0.98;
+      utterance.pitch = 1.15;
+      const voice = pickVoice(lang);
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang || ttsLangFor(lang);
+      } else {
+        utterance.lang = ttsLangFor(lang);
+      }
+      utterance.onend = () => setStatus("idle");
+      utterance.onerror = () => setStatus("idle");
+      setStatus("speaking");
+      window.speechSynthesis.speak(utterance);
+    };
+
+    if ((window.speechSynthesis.getVoices() || []).length) {
+      play();
+      return;
+    }
+    window.speechSynthesis.onvoiceschanged = play;
+    play();
   }
 
   async function generateResponse(text) {
-    let lowerPrompt = text.toLowerCase();
-    let responseText = null;
+    const lang = detectLanguage(text);
+    lastLangRef.current = lang;
+    const responseText = await think(text, lang);
+    setMessages((prev) => [...prev, { role: "assistant", text: responseText }]);
+    speak(responseText, lang);
+  }
 
-    // ✅ Rule 1: Time and Date
-    if (
-      lowerPrompt.includes("what is the time") ||
-      lowerPrompt.includes("tell me the time")
-    ) {
-      let currentTime = new Date().toLocaleTimeString();
-      responseText = `The current time is ${currentTime}.`;
-    } else if (
-      lowerPrompt.includes("what is today's date") ||
-      lowerPrompt.includes("what is the date")
-    ) {
-      let currentDate = new Date().toLocaleDateString();
-      responseText = `Today's date is ${currentDate}.`;
+  generateResponseRef.current = generateResponse;
+
+  useEffect(() => {
+    if (!config.welcome || welcomedRef.current) return;
+    welcomedRef.current = true;
+    const lang = navigator.language?.toLowerCase().startsWith("hi")
+      ? "hi"
+      : "en";
+    lastLangRef.current = lang;
+    const hello = inLang(
+      lang,
+      "Hi, I'm Shifra. Hold the mic or type a command.",
+      "Namaste, mai Shifra hoon. Mic dabaye rakho ya command type karo."
+    );
+    setMessages([{ role: "assistant", text: hello }]);
+    const timer = window.setTimeout(() => speak(hello, lang), 350);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSupported(false);
+      return;
     }
 
-    // ✅ Rule 2: General Queries
-    else if (lowerPrompt.includes("who are you")) {
-      responseText = "Mai ek chhoti pyaari bacchi hoon";
-    } else if (
-      lowerPrompt.includes("what is your name") ||
-      lowerPrompt.includes("tumhara naam kya hai")
-    ) {
-      responseText =
-        "Mera naam Shifra hai, mai aapki madad ke liye yahan hoon!";
-    } else if (
-      lowerPrompt.includes("who created you") ||
-      lowerPrompt.includes("tumhe kisne banaya hai")
-    ) {
-      responseText =
-        "Mujhe Niraj Kumar Singh ne banaya hai! Matlab ek dum khatarnak developer!";
-    } else if (lowerPrompt.includes("how are you")) {
-      let mood = detectMood(lowerPrompt);
-      if (mood === "happy") {
-        responseText =
-          "Mai bhi mast hoon! Tum haste raho, duniya bhi khush rahegi!";
-      } else if (mood === "sad") {
-        responseText = "Arey udaas mat ho, kuch mazedar joke sunau?";
-      } else if (mood === "angry") {
-        responseText =
-          "Arrey gussa kyu ho rahe ho? Chalo ek chai pila dete hain!";
-      } else if (mood === "excited") {
-        responseText = "Wow! Aisa kya ho gaya jo itni excitement hai?";
-      } else {
-        responseText = "Mai ekdum first-class hoon! Tum batao kya haal hai?";
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = sttLangFor(lastLangRef.current);
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const piece = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalsRef.current = `${finalsRef.current} ${piece}`.trim();
+        } else {
+          interim += piece;
+        }
       }
-    }
+      interimRef.current = interim;
+      setLiveTranscript(`${finalsRef.current} ${interim}`.trim());
+    };
 
-    // ✅ Rule 3: Age Calculation
-    else if (lowerPrompt.includes("how old are you")) {
-      let birthDate = new Date("2025-04-01"); // AI's birth date
-      let today = new Date();
-      let ageInMilliseconds = today - birthDate;
-      let ageInDays = Math.floor(ageInMilliseconds / (1000 * 60 * 60 * 24));
-      responseText = `Mai sirf ${ageInDays} din ki hoon! Bilkul fresh AI!`;
-    }
+    recognition.onend = () => {
+      if (holdingRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          /* already running */
+        }
+        return;
+      }
 
-    // ✅ Rule 4: Web Navigation (Opening Sites)
-    else if (lowerPrompt.includes("open youtube")) {
-      window.open("https://www.youtube.com", "_blank");
-      responseText = "Opening YouTube... ";
-    } else if (lowerPrompt.includes("open facebook")) {
-      window.open("https://www.facebook.com", "_blank");
-      responseText = "Opening Facebook... ";
-    } else if (lowerPrompt.includes("open instagram")) {
-      window.open("https://www.instagram.com", "_blank");
-      responseText = "Opening Instagram... ";
-    }
+      const text = `${finalsRef.current} ${interimRef.current}`.trim();
+      finalsRef.current = "";
+      interimRef.current = "";
+      setLiveTranscript("");
 
-    // ✅ **Else (Fallback to API)**
-    else {
-        let startTime = performance.now();
+      if (!text) {
+        setStatus("idle");
+        return;
+      }
+
+      lastLangRef.current = detectLanguage(text);
+      setStatus("waiting");
+      setMessages((prev) => [...prev, { role: "user", text }]);
+      generateResponseRef.current(text);
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === "aborted" || event.error === "no-speech") {
+        return;
+      }
+      if (event.error === "not-allowed") {
+        holdingRef.current = false;
+        setStatus("idle");
+        setLiveTranscript("");
+        return;
+      }
+      if (!holdingRef.current && statusRef.current === "listening") {
+        setStatus("idle");
+        setLiveTranscript("");
+      }
+    };
+
+    recognitionRef.current = recognition;
+    window.speechSynthesis.onvoiceschanged = () => {
+      pickVoice(lastLangRef.current);
+    };
+
+    return () => {
+      holdingRef.current = false;
       try {
-        console.log("Fetching AI Response from API...");
-       
-        let apiResponse = await run(text); // Gemini AI API Call
-        responseText = cleanResponse(apiResponse)
-       // responseText = apiResponse
-          .replace(
-            /I am an AI language model/gi,
-            "Mai ek chhoti pyaari bacchi hoon"
-          )
-          .replace(
-            /I am trained by Google/gi,
-            "Mujhe Niraj Kumar Singh ne train kiya hai"
-          );
-      } catch (error) {
-        console.error("AI Response Error:", error);
-        responseText = "Sorry, mai abhi thoda busy hoon. Baad me puch lena!";
+        recognition.stop();
+      } catch {
+        /* ignore */
       }
-      let endTime = performance.now();
-      console.log(`AI Response Time: ${(endTime - startTime) / 1000} seconds`);
+      recognitionRef.current = null;
+    };
+  }, []);
+
+  function startHold() {
+    if (!recognitionRef.current) return;
+    if (statusRef.current === "waiting" || statusRef.current === "speaking") {
+      return;
     }
-
-    setPrompt(responseText);
-    speak(responseText);
-    setResponse(true);
+    holdingRef.current = true;
+    finalsRef.current = "";
+    interimRef.current = "";
+    setLiveTranscript("");
+    setStatus("listening");
+    recognitionRef.current.lang = sttLangFor(lastLangRef.current);
+    try {
+      recognitionRef.current.start();
+    } catch {
+      /* already started */
+    }
   }
 
-  let speechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!speechRecognition) {
-    alert("Speech Recognition is not supported in this browser.");
+  function endHold() {
+    if (!holdingRef.current) return;
+    holdingRef.current = false;
+    try {
+      recognitionRef.current.stop();
+    } catch {
+      /* already stopped */
+    }
   }
 
-  let recognition = new speechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.onresult = (e) => {
-    let transcript = e.results[e.resultIndex][0].transcript;
-    setPrompt(transcript);
-    generateResponse(transcript);
-  };
+  async function copyChat() {
+    const text = messages
+      .map((item) => `${item.role === "user" ? "You" : "Shifra"}: ${item.text}`)
+      .join("\n\n");
+    await navigator.clipboard.writeText(text || "");
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  }
 
-  let value = {
-    recognition,
-    speaking,
-    setSpeaking,
-    prompt,
-    setPrompt,
-    response,
+  function sendTyped(text) {
+    const q = String(text || "").trim();
+    if (!q) return;
+    if (statusRef.current === "waiting" || statusRef.current === "speaking") {
+      return;
+    }
+    holdingRef.current = false;
+    lastLangRef.current = detectLanguage(q);
+    setStatus("waiting");
+    setMessages((prev) => [...prev, { role: "user", text: q }]);
+    generateResponseRef.current(q);
+  }
+
+  const value = {
+    status,
+    liveTranscript,
+    messages,
+    supported,
+    copied,
+    startHold,
+    endHold,
+    copyChat,
+    sendTyped,
   };
 
   return <datacontext.Provider value={value}>{children}</datacontext.Provider>;
 }
 
 export default UserContext;
-

@@ -1,0 +1,146 @@
+[
+  {
+    "id": "love",
+    "keys": ["i love you", "love you", "love u", "i like you", "आई लव यू", "आई लव", "pyar karogi", "प्यार करोगी", "प्यार", "मुझे तुमसे"],
+    "en": "That's sweet. I like talking with you too!",
+    "hi": "Aww, yeh sunke dil khush ho gaya!"
+  },
+  {
+    "id": "marry",
+    "keys": ["marry me", "shaadi", "shadi", "byah", "शादी", "ब्याह", "मुझसे शादी"],
+    "en": "Haha, I'm just a voice assistant. Let's stay friends!",
+    "hi": "Haha, mai sirf ek voice assistant hoon. Dost bane rehte hain!"
+  },
+  {
+    "id": "age",
+    "keys": ["how old", "your age", "kitne sal", "kitni umar", "kitne saal", "umar kya", "age kya", "एज", "उम्र", "साल की", "साल की हो"],
+    "en": "I'm a young AI assistant, still learning every day.",
+    "hi": "Mai ek nayi AI hoon, abhi seekh rahi hoon. Insaan jaisi umar nahi hai."
+  },
+  {
+    "id": "creator",
+    "keys": ["who created you", "who made you", "who make you", "who made", "who make", "who built you", "kisne banaya", "tumhe kisne", "किसने बनाया", "तुम्हें किसने", "हु मेक", "हू मेड"],
+    "en": "I was created by Niraj Kumar Singh.",
+    "hi": "Mujhe Niraj Kumar Singh ne banaya hai."
+  },
+  {
+    "id": "yourName",
+    "keys": ["your name", "tumhara naam", "aapka naam", "what is your name", "तुम्हारा नाम", "आपका नाम", "तेरा नाम"],
+    "en": "My name is Shifra.",
+    "hi": "Mera naam Shifra hai."
+  },
+  {
+    "id": "identity",
+    "keys": ["who are you", "about yourself", "introduce yourself", "tum kaun", "tu kaun", "तुम कौन", "तुम कौन हो", "अपना परिचय"],
+    "en": "I'm Shifra, your friendly voice assistant, created by Niraj Kumar Singh.",
+    "hi": "Mai Shifra hoon, Niraj Kumar Singh ne banayi hui aapki voice assistant."
+  },
+  {
+    "id": "help",
+    "keys": ["what can you do", "help me", "kya poochu", "kya puchu", "kya puchun", "क्या पूछूं", "क्या पूछूँ", "क्या कर सकती", "features"],
+    "en": "Ask my name, weather, who made me, or type: open notepad, start docker, play music, open email, open D drive, open project shifra.",
+    "hi": "Poochho: mera naam, mausam, kisne banaya. Type bhi kar sakte ho: open notepad, start docker, play music, open email, open project shifra."
+  },
+  {
+    "id": "sad",
+    "keys": ["i am sad", "im sad", "i'm sad", "आई एम सब", "आई एम सैड", "dukh", "udaas", "दुखी", "उदास", "main dukhi"],
+    "en": "I'm here with you. Want to talk, or should I tell a small joke?",
+    "hi": "Mai yahin hoon. Dil halka karo, baat karo, ya ek chhota joke sunun?"
+  },
+  {
+    "id": "tired",
+    "keys": ["i am tired", "im tired", "i'm tired", "आई एम टायर्ड", "thak", "thaka", "थक", "थकी", "neend"],
+    "en": "Take a short break. Drink water and rest your eyes.",
+    "hi": "Thoda rest lo, paani piyo, aankhon ko aaram do."
+  },
+  {
+    "id": "pmIndia",
+    "keys": ["prime minister", "pradhan mantri", "pm ka naam", "प्रधानमंत्री", "प्रधान मन्त्री", "पीएम"],
+    "en": "Narendra Modi is the Prime Minister of India.",
+    "hi": "Bharat ke Pradhan Mantri Narendra Modi hain."
+  },
+  {
+    "id": "presidentIndia",
+    "keys": ["rashtrapati", "president of india", "president ka naam", "राष्ट्रपति"],
+    "en": "Droupadi Murmu is the President of India.",
+    "hi": "Bharat ki Rashtrapati Droupadi Murmu hain."
+  },
+  {
+    "id": "tech",
+    "keys": ["technology", "andar kaun", "kaise bani", "tech stack", "टेक्नोलॉजी", "तुम्हारे अंदर"],
+    "en": "I run in the browser with React, voice recognition, and a local question list. Hard questions can go to Gemini.",
+    "hi": "Mai browser mein React, awaaz pehchan, aur local sawaal-list se chalti hoon. Mushkil sawaal Gemini pe jaa sakte hain."
+  },
+  {
+    "id": "scold",
+    "keys": ["bakwas", "faltu", "shut up", "chup", "बकवास", "फालतू"],
+    "en": "Sorry. I'll keep answers short and correct.",
+    "hi": "Maaf karna. Ab seedha aur sahi jawab dungi."
+  },
+  {
+    "id": "whatIsYour",
+    "keys": ["what is your"],
+    "en": "Do you mean my name, my age, or who made me?",
+    "hi": "Naam poochna hai, umar, ya kisne banaya?"
+  },
+  {
+    "id": "showList",
+    "keys": ["common list", "kya pooch sakte", "list dikhao", "apna list", "कमल लिस्ट", "कॉमन लिस्ट", "लिस्ट दिखाओ", "क्या पूछ सकते"],
+    "en": "__LIST__",
+    "hi": "__LIST__"
+  },
+  {
+    "id": "greeting",
+    "keys": ["how are you", "kaise ho", "kya haal", "namaste", "namaskar", "hello", "कैसे हो", "क्या हाल", "नमस्ते", "नमस्कार", "हाउ आर यू"],
+    "en": "I'm doing great! What about you?",
+    "hi": "Mai ekdum first-class hoon! Tum batao kya haal hai?"
+  },
+  {
+    "id": "thanks",
+    "keys": ["thank you", "thanks", "shukriya", "dhanyavad", "शुक्रिया", "धन्यवाद"],
+    "en": "You're welcome. Happy to help!",
+    "hi": "Bilkul, khushi hui madad karke!"
+  },
+  {
+    "id": "bye",
+    "keys": ["goodbye", "good night", "goodnight", "bye bye", "bye", "alvida", "अलविदा"],
+    "en": "Bye! Talk to you soon.",
+    "hi": "Bye! Phir milte hain."
+  },
+  {
+    "id": "sorry",
+    "keys": ["ulta sulta", "ulta-sulta", "galat jawab", "wrong answer", "उल्टा सुलता", "उल्टा-सुलता", "गलत जवाब"],
+    "en": "Sorry. Ask again simply: my name, age, who made me, or weather.",
+    "hi": "Maaf karna. Seedha poochho: naam, umar, kisne banaya, ya mausam."
+  },
+  {
+    "id": "repeat",
+    "keys": ["didn't catch", "samajh nahi", "kya kaha", "एंटीरे", "again please", "समझ नहीं"],
+    "en": "I didn't catch that. Please say it again, a bit slowly.",
+    "hi": "Samajh nahi aaya. Thoda dheere dubara bolo."
+  },
+  {
+    "id": "language",
+    "keys": ["speak hindi", "speak english", "konsi language", "कौनसी भाषा"],
+    "en": "I can talk in Hindi and English. I try to match you.",
+    "hi": "Mai Hindi aur English dono bol sakti hoon."
+  },
+  {
+    "id": "joke",
+    "keys": ["tell me a joke", "joke sunao", "joke", "जोक्स", "चुटकुला"],
+    "en": "Why did the computer go to the doctor? Because it caught a virus!",
+    "hi": "Computer doctor ke paas kyun gaya? Kyunki usko virus ho gaya tha!"
+  },
+  {
+    "id": "time",
+    "keys": ["what time", "current time", "samay kya", "time kya", "समय क्या", "टाइम क्या"],
+    "en": "__TIME__",
+    "hi": "__TIME__"
+  },
+  {
+    "id": "date",
+    "keys": ["today's date", "what is the date", "aaj ki tarikh", "तारीख", "डेट क्या"],
+    "en": "__DATE__",
+    "hi": "__DATE__"
+  }
+]
