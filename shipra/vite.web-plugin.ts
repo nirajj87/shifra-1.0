@@ -51,30 +51,39 @@ function firstTopic(topics: DdgTopic[] = []): string {
   return "";
 }
 
-async function duckDuckGo(query: string) {
+type SearchHit = { title: string; text: string };
+
+async function duckDuckGo(query: string): Promise<SearchHit[]> {
   const url =
     `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}` +
     `&format=json&no_html=1&skip_disambig=1`;
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!res.ok) return "";
+  if (!res.ok) return [];
   const data = (await res.json()) as DdgResponse;
-  return spoken(data.AbstractText || data.Answer || firstTopic(data.RelatedTopics));
+  const hits: SearchHit[] = [];
+  const main = spoken(data.AbstractText || data.Answer || "");
+  if (main) hits.push({ title: "", text: main });
+  const related = spoken(firstTopic(data.RelatedTopics));
+  if (related && related !== main) hits.push({ title: "", text: related });
+  return hits;
 }
 
-async function googleSearch(query: string, env: Record<string, string>) {
+async function googleSearch(query: string, env: Record<string, string>): Promise<SearchHit[]> {
   const key = env.VITE_GOOGLE_CSE_KEY || env.GOOGLE_CSE_KEY || "";
   const cx = env.VITE_GOOGLE_CSE_CX || env.GOOGLE_CSE_CX || "";
-  if (!key || !cx) return "";
+  if (!key || !cx) return [];
   const url =
     `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(key)}` +
     `&cx=${encodeURIComponent(cx)}&q=${encodeURIComponent(query)}&num=3`;
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!res.ok) return "";
+  if (!res.ok) return [];
   const data = (await res.json()) as GoogleResponse;
-  const snippets = (data.items || [])
-    .map((item) => String(item.snippet || "").trim())
-    .filter(Boolean);
-  return spoken(snippets[0] || "");
+  return (data.items || [])
+    .map((item) => ({
+      title: String(item.title || "").trim(),
+      text: spoken(String(item.snippet || "")),
+    }))
+    .filter((item) => item.text.length >= 40);
 }
 
 function isTranslateRoute(url = "") {
@@ -328,9 +337,9 @@ function attach(server: ViteDevServer | PreviewServer) {
     }
     googleSearch(q, env)
       .then(async (google) => {
-        if (google) return { source: "google", text: google };
+        if (google.length) return { source: "google", text: google[0].text, hits: google };
         const ddg = await duckDuckGo(q);
-        return { source: ddg ? "web" : "", text: ddg };
+        return { source: ddg.length ? "web" : "", text: ddg[0]?.text || "", hits: ddg };
       })
       .then((result) => json(res, 200, { ok: Boolean(result.text), ...result }))
       .catch(() => json(res, 200, { ok: false, text: "" }));

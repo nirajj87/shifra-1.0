@@ -1,5 +1,6 @@
 import { inLang } from "../language";
 import { fold } from "./fold";
+import { hasGroup, isToolSpeech } from "./intents";
 import { geocode, type Geo } from "./places";
 import { repairSpeech } from "./speech";
 
@@ -84,9 +85,9 @@ function langCode(name: string) {
 }
 
 function looksLikeTranslate(text: string) {
+  if (hasGroup(text, "translate")) return true;
   const f = fold(repairSpeech(text));
   return (
-    /translate|translation/.test(f) ||
     /\b(ka|ki|ke|ko)\s+(english|hindi)\b/.test(f) ||
     /\bin\s+(english|hindi|spanish|french|german)\b/.test(f) ||
     /\b(english|hindi)\s+mein\b/.test(f)
@@ -149,7 +150,7 @@ async function googleTranslate(q: string, tl: string) {
   return String(mem?.responseData?.translatedText || data?.text || "").trim();
 }
 
-const DIST_WORD = String.raw`(?:duri|door|dur|distance|distens|km|kilometer|kilometre)`;
+const DIST_WORD = String.raw`(?:duri|doori|door|dur|distance|distens|km|kilometer|kilometre)`;
 const PLACE_JOIN = String.raw`(?:se|to|from|tak)`;
 
 function parseDistance(text: string) {
@@ -157,13 +158,15 @@ function parseDistance(text: string) {
     return null;
   }
   const f = fold(repairSpeech(text));
-  const explicit = /\b(duri|door|dur|distance|distens|far)\b/.test(f);
+  const explicit = hasGroup(text, "distance");
   const kmPair = new RegExp(String.raw`${PLACE_JOIN} .+\bkm\b`).test(f);
   if (!explicit && !kmPair) return null;
   const hit =
     f.match(/distance between (.+?) and (.+)/) ||
     f.match(/how far (?:is )?(.+?) from (.+)/) ||
     f.match(/how far (?:is )?(.+?) to (.+)/) ||
+    f.match(/(.+?) far from (.+)/) ||
+    f.match(/far from (.+?) (?:to|and|se) (.+)/) ||
     f.match(new RegExp(String.raw`(.+?) ${PLACE_JOIN} (.+?) (?:kitna|kitni) ${DIST_WORD}\b`)) ||
     f.match(new RegExp(String.raw`(.+?) ${PLACE_JOIN} (.+?) (?:ki|ka|ke) ${DIST_WORD}\b`)) ||
     f.match(new RegExp(String.raw`(.+?) ${PLACE_JOIN} (.+?) ${DIST_WORD}\b`)) ||
@@ -174,7 +177,7 @@ function parseDistance(text: string) {
     s
       .replace(
         new RegExp(
-          String.raw`\b(the|city|of|ki|ke|ka|ko|se|to|from|tak|hai|batao|kya|kitna|kitni|sar|uttar|duri|door|dur|distance|distens|km|kilometer|kilometre)\b`,
+          String.raw`\b(the|city|of|ki|ke|ka|ko|se|to|from|tak|hai|batao|kya|kitna|kitni|sar|uttar|duri|doori|door|dur|distance|distens|far|km|kilometer|kilometre)\b`,
           "g"
         ),
         " "
@@ -309,6 +312,7 @@ function parseWorldTime(text: string) {
   if (/aajkal|news|chal raha/.test(f)) return null;
   const hit =
     f.match(/time in ([a-z ]{3,24})/) ||
+    f.match(/samay in ([a-z ]{3,24})/) ||
     f.match(/([a-z ]{3,24}) ka (?:time|samay)/);
   if (!hit) return null;
   const city = hit[1].replace(/\b(the|city|current|abhi|kya|hai|today|date)\b/g, "").trim();
@@ -320,8 +324,7 @@ function parseWorldTime(text: string) {
 
 function parseNews(text: string) {
   const f = fold(text);
-  const newsish = /news|headline|aajkal|kya chal raha|latest news|twitter|tweet/.test(f);
-  if (!newsish) return null;
+  if (!hasGroup(text, "news") && !/kya chal raha/.test(f)) return null;
   if (/\btwitter\b|\btweet\b/.test(f)) return { topic: "twitter" };
   if (/\bbihar\b/.test(f)) return { topic: "bihar" };
   if (/\bcricket\b/.test(f)) return { topic: "cricket" };
@@ -376,7 +379,8 @@ export function looksLikeTranslateQuery(text: string) {
 }
 
 export function isDistanceQuery(text: string) {
-  return Boolean(parseDistance(text));
+  if (parseUnits(text)) return false;
+  return hasGroup(text, "distance") || Boolean(parseDistance(text));
 }
 
 export function isSelfSkill(text: string) {
@@ -388,7 +392,8 @@ export function isSelfSkill(text: string) {
 
 export function isCommandQuery(text: string) {
   return Boolean(
-    parseTranslate(text) ||
+    isToolSpeech(text) ||
+      parseTranslate(text) ||
       parseUnits(text) ||
       parseNews(text) ||
       parseDistance(text) ||

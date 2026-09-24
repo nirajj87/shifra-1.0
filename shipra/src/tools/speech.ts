@@ -3,6 +3,18 @@
  * before intent parsers run, so distance/translate/wiki see real words.
  */
 const FIXES: [string, string][] = [
+  ["टेल मी अबाउट योरसेल्फ", "tell me about yourself"],
+  ["टेल मी अबाउट योर सेल्फ", "tell me about yourself"],
+  ["टेल मी अबाउट योर मैसेल्फ", "tell me about yourself"],
+  ["व्हाट इस योरसेल्फ", "who are you"],
+  ["व्हाट इस योर मैसेल्फ", "who are you"],
+  ["व्हाट इस योर सेल्फ", "who are you"],
+  ["व्हाट इस योर नेम", "what is your name"],
+  ["योरसेल्फ", "yourself"],
+  ["मैसेल्फ", "myself"],
+  ["टेल मी अबाउट", "tell me about"],
+  ["टेल मी", "tell me"],
+  ["अबाउट", "about"],
   ["व्हाट इस ए लरावेली", "what is laravel"],
   ["व्हाट इस ए लरावेल", "what is laravel"],
   ["व्हाट इस द टुडे", "what is the today"],

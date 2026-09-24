@@ -10,7 +10,7 @@ const MODELS = [
 function instruction(lang: string) {
   const n = config.answerSentences;
   const rules =
-    "Never invent distances, names, dates, or news. If unsure, say you do not know. No markdown.";
+    "Never invent distances, names, dates, or news. If you are not sure, say you do not know. No markdown.";
   if (lang === "hi") {
     return `You are Shifra, a friendly voice assistant created by Niraj Kumar Singh. Reply in simple Hindi only. Use at most ${n} short spoken sentences. ${rules}`;
   }

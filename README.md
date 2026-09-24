@@ -4,6 +4,9 @@ Browser voice assistant (Hindi + English). Common questions work **offline**. If
 
 Live app folder: [`shipra/`](./shipra)
 
+**User + internal manuals:** [`manual/`](./manual)  
+**Server upload folder (after build):** [`live/`](./live) — `npm run build:live`
+
 ## Desktop app (Windows EXE)
 
 Double-click **`Shifra.exe`** in the repo root (or `shipra\desktop\Shifra.exe`). It starts the local server and opens Shifra in an Edge/Chrome app window.
@@ -48,8 +51,9 @@ From the **repo root**:
 | Command | What it does |
 |---|---|
 | `npm run dev` | Local app at http://localhost:5173/shifra/ |
-| `npm run build` | Production build in `shipra/dist` |
-| `npm run preview` | Preview the production build |
+| `npm run build` | Production files in `shipra/dist` |
+| `npm run build:live` | Same, then copies to `live/` for FTP/cPanel |
+| `npm run preview` | Preview production + news/translate APIs |
 | `npm run exe` | Builds `Shifra.exe` (Windows launcher) |
 
 Or from `shipra/`: `npm run dev`, `npm run build`.
@@ -69,6 +73,7 @@ After changing Vite plugins, restart `npm run dev`.
 | `VITE_WEB_FALLBACK` | `true` | Wikipedia/Google after Gemini fails |
 | `VITE_GOOGLE_CSE_KEY` | empty | Optional Google Custom Search key |
 | `VITE_GOOGLE_CSE_CX` | empty | Optional Google search engine ID |
+| `X_BEARER_TOKEN` | empty | Optional X/Twitter recent search (server) |
 | `SHIFRA_PROJECTS_DIR` | `D:\Projects` | Folder for “open project …” |
 | `SHIFRA_DOCKER_EXE` | Docker Desktop path | Used by “start docker” |
 

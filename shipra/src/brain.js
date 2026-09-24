@@ -1,6 +1,6 @@
 import { config } from "./config";
 import run from "./gemini";
-import { inLang } from "./language";
+import { inLang, isGreeting } from "./language";
 import {
   findLearnedAnswer,
   findStaticAnswer,
@@ -15,16 +15,29 @@ import {
 import { fold } from "./tools/fold";
 import { handleFreeTools, isDistanceQuery, looksLikeTranslateQuery, toolSourceName } from "./tools/free-tools";
 import { handleSystemCommand } from "./tools/system";
-import { lookupWeb, looksLikeKnowledge } from "./tools/web";
+import { lookupWeb, looksLikeKnowledge, isWeakWebTopic } from "./tools/web";
 import { getWeatherReply, isWeatherQuestion, isWeatherSmallTalk } from "./tools/weather.js";
+import { hasGroup, isToolSpeech } from "./tools/intents";
 import { repairSpeech } from "./tools/speech";
 import { asReply, reply } from "./reply";
 
 const USER_NAME_KEY = "shifra_user_name";
+const BAD_NAME =
+  /^(kya|hai|hain|batao|bolo|bataye|please|naam|name|my|the|aapka|mera|kya hai|batao na|बताओ|क्या|है|बोलो|बता)$/i;
+
+function isRealName(name) {
+  const n = String(name || "").replace(/\s+/g, " ").trim();
+  if (n.length < 2 || n.length > 40) return false;
+  if (n.split(" ").length > 4) return false;
+  if (BAD_NAME.test(n) || BAD_NAME.test(fold(n))) return false;
+  if (/kya|batao|bolo|क्या|बताओ|बोलो/.test(n) && n.split(" ").length <= 2) return false;
+  return true;
+}
 
 function userName() {
   try {
-    return localStorage.getItem(USER_NAME_KEY) || "";
+    const n = localStorage.getItem(USER_NAME_KEY) || "";
+    return isRealName(n) ? n : "";
   } catch {
     return "";
   }
@@ -32,31 +45,40 @@ function userName() {
 
 function saveUserName(name) {
   const clean = String(name || "")
-    .replace(/\bhai\b/gi, "")
-    .replace(/[?.!]/g, "")
+    .replace(/[?.!,]/g, " ")
+    .replace(/\s+(hai|hain|है|हैं)$/i, "")
+    .replace(/\s+/g, " ")
     .trim();
-  if (clean) localStorage.setItem(USER_NAME_KEY, clean);
+  if (!isRealName(clean)) return "";
+  try {
+    localStorage.setItem(USER_NAME_KEY, clean);
+  } catch {
+    /* ignore */
+  }
   return clean;
 }
 
-function handleUserName(text, lang) {
-  const q = text.toLowerCase();
-  const told =
+function isAskOwnName(text) {
+  const f = fold(text);
+  return (
+    /\b(mera|my) naam (kya|batao|bolo|bataye)\b/.test(f) ||
+    /\bwhat(?:'s| is)? my name\b/.test(f) ||
+    /मेरा नाम (क्या|बताओ|बोलो)/.test(text)
+  );
+}
+
+function toldName(text) {
+  if (isAskOwnName(text)) return null;
+  const hit =
     text.match(/mera naam\s+(.+)/i) ||
     text.match(/my name is\s+(.+)/i) ||
     text.match(/मेरा नाम\s+(.+)/);
-  if (told && !/kya|क्या/.test(told[1])) {
-    const name = saveUserName(told[1]);
-    if (name) {
-      return inLang(lang, `Nice to meet you, ${name}.`, `Accha, ${name}. Yaad rakh liya!`);
-    }
-  }
-  if (
-    q.includes("my name") ||
-    q.includes("mera naam kya") ||
-    text.includes("मेरा नाम क्या") ||
-    text.includes("मेरा नाम क्या है")
-  ) {
+  if (!hit) return null;
+  return saveUserName(hit[1]);
+}
+
+function handleUserName(text, lang) {
+  if (isAskOwnName(text)) {
     const name = userName();
     if (name) {
       return inLang(lang, `Your name is ${name}.`, `Aapka naam ${name} hai.`);
@@ -64,8 +86,12 @@ function handleUserName(text, lang) {
     return inLang(
       lang,
       "I don't know your name yet. Tell me: my name is ...",
-      "Abhi aapka naam nahi pata. Bolo: mera naam ... hai."
+      "Abhi aapka naam nahi pata. Bolo: mera naam Niraj hai."
     );
+  }
+  const name = toldName(text);
+  if (name) {
+    return inLang(lang, `Nice to meet you, ${name}.`, `Accha, ${name}. Yaad rakh liya!`);
   }
   return null;
 }
@@ -80,27 +106,16 @@ function cleanResponse(text) {
 
 function looksLikeTime(text) {
   if (isDistanceQuery(text) || looksLikeTranslateQuery(text)) return false;
+  if (hasGroup(text, "news") || hasGroup(text, "weather")) return false;
   const f = fold(text);
   if (/time in /.test(f) && !/today|date/.test(f)) return false;
-  return (
-    f.includes("what is the time") ||
-    f.includes("tell me the time") ||
-    f.includes("current time") ||
-    /\bsamay\b/.test(f) ||
-    /\btime\b/.test(f)
-  );
+  return hasGroup(text, "time");
 }
 
 function looksLikeDate(text) {
-  if (isDistanceQuery(text)) return false;
-  const f = fold(text);
-  return (
-    f.includes("today's date") ||
-    f.includes("today date") ||
-    f.includes("what is the date") ||
-    /\btarikh\b/.test(f) ||
-    /\bdate\b/.test(f)
-  );
+  if (isDistanceQuery(text) || looksLikeTranslateQuery(text)) return false;
+  if (hasGroup(text, "news")) return false;
+  return hasGroup(text, "date");
 }
 
 
@@ -225,6 +240,11 @@ export async function think(raw, lang) {
   const math = simpleMath(text, lang);
   if (math) return reply(math, "Shifra");
 
+  if (isGreeting(text) && isWeakWebTopic(text)) {
+    const hi = findStaticAnswer("hello", lang);
+    if (hi) return reply(hi, "Shifra");
+  }
+
   if (!looksLikeKnowledge(text)) {
     const local = findStaticAnswer(text, lang);
     if (local) return reply(local, "Shifra");
@@ -237,7 +257,23 @@ export async function think(raw, lang) {
     return unknownReply(text, lang);
   }
 
-  if (config.geminiEnabled && config.apiKey && shouldTryGemini()) {
+  const allowLookup = !isToolSpeech(text) && !isWeakWebTopic(text);
+
+  const fromSearch = async () => {
+    if (!allowLookup || !config.webFallback) return null;
+    try {
+      return asReply(await lookupWeb(text, lang), "Wikipedia");
+    } catch {
+      return null;
+    }
+  };
+
+  if (looksLikeKnowledge(text)) {
+    const web = await fromSearch();
+    if (web) return web;
+  }
+
+  if (allowLookup && config.geminiEnabled && config.apiKey && shouldTryGemini()) {
     try {
       const apiResponse = cleanResponse(await run(text, lang));
       reportGeminiSuccess();
@@ -250,14 +286,9 @@ export async function think(raw, lang) {
     }
   }
 
-  if (config.webFallback) {
-    try {
-      const web = await lookupWeb(text, lang);
-      const packed = asReply(web, "Wikipedia");
-      if (packed) return packed;
-    } catch {
-      /* training reply below */
-    }
+  if (!looksLikeKnowledge(text)) {
+    const web = await fromSearch();
+    if (web) return web;
   }
 
   return unknownReply(text, lang);

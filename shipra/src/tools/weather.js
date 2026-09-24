@@ -1,9 +1,10 @@
 import { geocode } from "./places";
 import { fold } from "./fold";
+import { hasGroup } from "./intents";
 import { repairSpeech } from "./speech";
 
 const WEATHER_STOP =
-  /\b(aaj|ka|ki|ke|the|what|is|today|temperature|weather|mausam|kaisa|kya|hai|kitna|degree|celsius|temp|in|of|me|mein|batao)\b/gi;
+  /\b(aaj|ka|ki|ke|the|what|is|today|temperature|weather|mausam|kaisa|kya|hai|kitna|degree|celsius|temp|tapman|forecast|in|of|me|mein|batao)\b/gi;
 
 export function isWeatherSmallTalk(text) {
   const t = `${text}`.toLowerCase();
@@ -21,20 +22,7 @@ export function isWeatherQuestion(text) {
   if (isWeatherSmallTalk(text) && !/temperature|टेंपरेचर|तापमान|kitna degree/i.test(text)) {
     return false;
   }
-  const t = fold(repairSpeech(text));
-  return (
-    t.includes("temperature") ||
-    t.includes("weather") ||
-    t.includes("mausam kaisa") ||
-    t.includes("mausam kya") ||
-    t.includes("kitna degree") ||
-    /\btemp\b/.test(t) ||
-    text.includes("मौसम कैसा") ||
-    text.includes("मौसम क्या") ||
-    text.includes("तापमान") ||
-    text.includes("टेंपरेचर") ||
-    text.includes("टेम्परेचर")
-  );
+  return hasGroup(text, "weather");
 }
 
 function extractPlace(text) {
